@@ -40,13 +40,38 @@ def run_download(job_id, url, start, end, quality):
             jobs[job_id]["progress"] = 100
 
     ydl_opts = {
-        "format": QUALITY_MAP.get(quality, QUALITY_MAP["best"]),
+        "format": QUALITY_MAP.get(
+            quality,
+            QUALITY_MAP["best"]
+        ),
+
         "merge_output_format": "mp4",
+
         "outtmpl": out_tmpl,
-        "download_ranges": yt_dlp.utils.download_range_func(None, [(to_seconds(start), to_seconds(end))]),
+
+        "download_ranges": yt_dlp.utils.download_range_func(
+            None,
+            [(to_seconds(start), to_seconds(end))]
+        ),
+
         "force_keyframes_at_cuts": True,
-        "postprocessors": [{"key": "FFmpegVideoConvertor", "preferedformat": "mp4"}],
+
+        "postprocessors": [
+            {
+                "key": "FFmpegVideoConvertor",
+                "preferedformat": "mp4"
+            }
+        ],
+
+        # YouTube extraction settings
+        "extractor_args": {
+            "youtube": {
+                "player_client": ["android_vr", "web_safari"]
+            }
+        },
+
         "progress_hooks": [hook],
+
         "quiet": True,
         "noprogress": True,
     }
