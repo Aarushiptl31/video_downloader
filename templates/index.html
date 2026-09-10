@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>YouTube Clip Downloader</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --card: #171a21;
+    --accent: #6c5ce7;
+    --accent2: #00d2a0;
+    --text: #e8e8ea;
+    --muted: #8a8f98;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(160deg, #0f1115, #14171f);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 32px;
+    width: 100%;
+    max-width: 460px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    border: 1px solid #23262f;
+  }
+  h1 {
+    font-size: 20px;
+    margin: 0 0 4px;
+  }
+  p.sub {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 0 0 24px;
+  }
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    margin-top: 16px;
+  }
+  input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #2c2f39;
+    background: #101319;
+    color: var(--text);
+    font-size: 14px;
+  }
+  input:focus { outline: 1px solid var(--accent); }
+  select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #2c2f39;
+    background: #101319;
+    color: var(--text);
+    font-size: 14px;
+  }
+  select:focus { outline: 1px solid var(--accent); }
+  .row { display: flex; gap: 12px; }
+  .row > div { flex: 1; }
+  .search-row { display: flex; gap: 8px; }
+  .search-row input { flex: 1; }
+  .search-row button {
+    margin-top: 0;
+    width: auto;
+    padding: 10px 16px;
+  }
+  button {
+    margin-top: 24px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .bar {
+    margin-top: 20px;
+    height: 8px;
+    background: #101319;
+    border-radius: 4px;
+    overflow: hidden;
+    display: none;
+  }
+  .bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.3s;
+  }
+  .status {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+  }
+  a.dl {
+    display: none;
+    margin-top: 16px;
+    text-align: center;
+    background: #101319;
+    padding: 10px;
+    border-radius: 8px;
+    color: var(--accent2);
+    text-decoration: none;
+    font-size: 14px;
+  }
+  .preview {
+    display: none;
+    margin-top: 16px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #23262f;
+    background: #101319;
+  }
+  .preview img {
+    width: 100%;
+    display: block;
+  }
+  .preview .meta {
+    padding: 10px 12px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .preview .meta strong {
+    color: var(--text);
+    display: block;
+    font-size: 13px;
+    margin-bottom: 2px;
+  }
+  video.clip {
+    display: none;
+    width: 100%;
+    margin-top: 16px;
+    border-radius: 10px;
+    background: #000;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Clip Downloader</h1>
+  <p class="sub">Trim and download youtube videos</p>
+
+  <label>Enter the Video URL</label>
+  <div class="search-row">
+    <input id="url" placeholder="https://...">
+    <button id="search">Search</button>
+  </div>
+
+  <div class="preview" id="preview">
+    <img id="previewThumb">
+    <div class="meta">
+      <strong id="previewTitle"></strong>
+      <span id="previewDuration"></span>
+    </div>
+  </div>
+
+  <div id="clipOptions" style="display:none;">
+    <div class="row">
+      <div>
+        <label>Start (h:m:s)</label>
+        <input id="start" placeholder="0:00:00" value="0:00:00">
+      </div>
+      <div>
+        <label>End (h:m:s)</label>
+        <input id="end" placeholder="0:00:30" value="0:00:30">
+      </div>
+    </div>
+
+    <label>Quality</label>
+    <select id="quality">
+      <option value="best">Best available</option>
+      <option value="1080">1080p</option>
+      <option value="720">720p</option>
+      <option value="480">480p</option>
+      <option value="360">360p</option>
+    </select>
+
+    <button id="go">Download Clip</button>
+  </div>
+
+  <div class="bar" id="bar"><div class="bar-fill" id="barFill"></div></div>
+  <div class="status" id="status"></div>
+  <video class="clip" id="clipPlayer" controls></video>
+  <a class="dl" id="dlLink">Save video file</a>
+</div>
+
+<script>
+const go = document.getElementById('go');
+const search = document.getElementById('search');
+const bar = document.getElementById('bar');
+const barFill = document.getElementById('barFill');
+const statusEl = document.getElementById('status');
+const dlLink = document.getElementById('dlLink');
+const urlInput = document.getElementById('url');
+const preview = document.getElementById('preview');
+const previewThumb = document.getElementById('previewThumb');
+const previewTitle = document.getElementById('previewTitle');
+const previewDuration = document.getElementById('previewDuration');
+const clipPlayer = document.getElementById('clipPlayer');
+const clipOptions = document.getElementById('clipOptions');
+
+function fmtDuration(sec) {
+  if (!sec) return '';
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = Math.floor(sec % 60);
+  return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s).padStart(2, '0');
+}
+
+search.onclick = async () => {
+  const url = urlInput.value.trim();
+  if (!url) { statusEl.textContent = 'Enter a URL'; return; }
+  preview.style.display = 'none';
+  clipOptions.style.display = 'none';
+  statusEl.textContent = 'Searching...';
+  search.disabled = true;
+
+  const res = await fetch('/api/preview_info', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({url})
+  });
+  const data = await res.json();
+  search.disabled = false;
+  if (data.error) { statusEl.textContent = 'Error: ' + data.error; return; }
+
+  previewThumb.src = data.thumbnail || '';
+  previewTitle.textContent = data.title || '';
+  previewDuration.textContent = fmtDuration(data.duration);
+  preview.style.display = 'block';
+  clipOptions.style.display = 'block';
+  statusEl.textContent = '';
+};
+
+go.onclick = async () => {
+  const url = urlInput.value;
+  const start = document.getElementById('start').value;
+  const end = document.getElementById('end').value;
+  const quality = document.getElementById('quality').value;
+  if (!url) { statusEl.textContent = 'Enter a URL'; return; }
+
+  go.disabled = true;
+  dlLink.style.display = 'none';
+  clipPlayer.style.display = 'none';
+  clipPlayer.src = '';
+  bar.style.display = 'block';
+  barFill.style.width = '0%';
+  statusEl.textContent = 'Starting...';
+
+  const res = await fetch('/api/download', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({url, start, end, quality})
+  });
+  const data = await res.json();
+  if (data.error) { statusEl.textContent = data.error; go.disabled = false; return; }
+
+  const jobId = data.job_id;
+  const poll = setInterval(async () => {
+    const r = await fetch(`/api/status/${jobId}`);
+    const s = await r.json();
+    if (s.status === 'downloading') {
+      barFill.style.width = (s.progress || 0) + '%';
+      statusEl.textContent = 'Downloading... ' + Math.round(s.progress || 0) + '%';
+    } else if (s.status === 'done') {
+      clearInterval(poll);
+      barFill.style.width = '100%';
+      statusEl.textContent = 'Done — preview below';
+      clipPlayer.src = `/api/preview_clip/${jobId}`;
+      clipPlayer.style.display = 'block';
+      dlLink.href = `/api/file/${jobId}`;
+      dlLink.style.display = 'block';
+      go.disabled = false;
+    } else if (s.status === 'error') {
+      clearInterval(poll);
+      statusEl.textContent = 'Error: ' + s.error;
+      go.disabled = false;
+    }
+  }, 1000);
+};
+</script>
+</body>
+</html>
