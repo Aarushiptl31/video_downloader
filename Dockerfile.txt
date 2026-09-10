@@ -2,9 +2,15 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install FFmpeg and required tools
+# System dependencies
 RUN apt-get update && \
-    apt-get install -y ffmpeg curl unzip ca-certificates && \
+    apt-get install -y \
+        ffmpeg \
+        curl \
+        unzip \
+        ca-certificates \
+        nodejs \
+        npm && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Deno
@@ -13,13 +19,24 @@ RUN curl -fsSL https://deno.land/install.sh | sh
 ENV DENO_INSTALL=/root/.deno
 ENV PATH=$DENO_INSTALL/bin:$PATH
 
-# Install Python dependencies
+# Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application
+# Download PO token provider
+RUN git clone --depth 1 \
+    https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git \
+    /root/bgutil-ytdlp-pot-provider
+
+# Install provider dependencies
+WORKDIR /root/bgutil-ytdlp-pot-provider/server
+RUN deno install --allow-scripts=npm:canvas
+
+# Return to app
+WORKDIR /app
 COPY . .
 
 ENV PYTHONUNBUFFERED=1
 
-CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-10000} app:app"]
+# Start PO token provider + Flask
+CMD ["sh", "-c", "deno run --allow-env --allow-net --allow-ffi=. --allow-read=. /root/bgutil-ytdlp-pot-provider/server/src/main.ts --host 127.0.0.1 --port 4416 & sleep 3 && gunicorn --bind 0.0.0.0:${PORT:-10000} app:app"]
