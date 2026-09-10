@@ -25,12 +25,16 @@ QUALITY_MAP = {
     "480": "bv*[height<=480]+ba/b[height<=480]",
     "360": "bv*[height<=360]+ba/b[height<=360]",
 }
+
 def get_cookie_file():
     source = "/etc/secrets/youtube_cookies.txt"
     destination = "/tmp/youtube_cookies.txt"
 
-    if not os.path.exists(source):
-        return None
+    if not os.path.isfile(source):
+        raise RuntimeError(
+            "YouTube cookie file not found at /etc/secrets/youtube_cookies.txt. "
+            "Check Render Dashboard → Environment → Secret Files."
+        )
 
     shutil.copyfile(source, destination)
 
