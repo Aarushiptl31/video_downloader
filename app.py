@@ -1,9 +1,11 @@
 import os, uuid, threading
 from flask import Flask, request, jsonify, send_from_directory, render_template
+
 import yt_dlp
 
 app = Flask(__name__)
-DOWNLOAD_DIR = os.path.join(os.path.dirname(__file__), "downloads")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DOWNLOAD_DIR = os.path.join(BASE_DIR, "temp_clips")
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
 jobs = {}
@@ -110,7 +112,17 @@ def get_file(job_id):
     job = jobs.get(job_id)
     if not job or not job.get("file"):
         return jsonify({"error": "not ready"}), 404
-    return send_from_directory(DOWNLOAD_DIR, job["file"], as_attachment=True)
+    filename = job["file"]
+    response = send_from_directory(DOWNLOAD_DIR, filename, as_attachment=True)
+
+    @response.call_on_close
+    def cleanup():
+        path = os.path.join(DOWNLOAD_DIR, filename)
+        if os.path.exists(path):
+            os.remove(path)
+        jobs.pop(job_id, None)
+
+    return response
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
