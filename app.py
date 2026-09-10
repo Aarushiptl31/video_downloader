@@ -63,10 +63,10 @@ def run_download(job_id, url, start, end, quality):
     ],
 
     "extractor_args": {
-        "youtubepot-bgutilscript": {
-            "server_home": "/root/bgutil-ytdlp-pot-provider/server"
-        }
-    },
+    "youtubepot-bgutilhttp": {
+        "base_url": "http://127.0.0.1:4416"
+    }
+},
 
     "quiet": False,
     "verbose": True,
@@ -103,8 +103,8 @@ def preview_info():
             "skip_download": True,
 
             "extractor_args": {
-                "youtubepot-bgutilscript": {
-                    "server_home": "/root/bgutil-ytdlp-pot-provider/server"
+                "youtubepot-bgutilhttp": {
+                    "base_url": "http://127.0.0.1:4416"
                 }
             }
         }
@@ -120,8 +120,6 @@ def preview_info():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
-
-
 @app.route("/api/download", methods=["POST"])
 def start_download():
     data = request.json
