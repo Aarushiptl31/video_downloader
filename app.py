@@ -61,7 +61,7 @@ def run_download(job_id, url, start, end, quality):
             "preferedformat": "mp4"
         }
     ],
-
+    "cookiefile": "/etc/secrets/youtube_cookies.txt",
     "extractor_args": {
     "youtubepot-bgutilhttp": {
         "base_url": "http://127.0.0.1:4416"
@@ -101,7 +101,7 @@ def preview_info():
             "quiet": False,
             "verbose": True,
             "skip_download": True,
-
+            "cookiefile": "/etc/secrets/youtube_cookies.txt",
             "extractor_args": {
                 "youtubepot-bgutilhttp": {
                     "base_url": "http://127.0.0.1:4416"
