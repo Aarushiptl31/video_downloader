@@ -1,4 +1,5 @@
 import os, uuid, threading
+import shutil
 from flask import Flask, request, jsonify, send_from_directory, render_template
 
 import yt_dlp
@@ -24,7 +25,17 @@ QUALITY_MAP = {
     "480": "bv*[height<=480]+ba/b[height<=480]",
     "360": "bv*[height<=360]+ba/b[height<=360]",
 }
+def get_cookie_file():
+    source = "/etc/secrets/youtube_cookies.txt"
+    destination = "/tmp/youtube_cookies.txt"
 
+    if not os.path.exists(source):
+        return None
+
+    shutil.copyfile(source, destination)
+
+    return destination
+cookie_file = get_cookie_file()
 def run_download(job_id, url, start, end, quality):
     jobs[job_id] = {"status": "downloading", "progress": 0, "file": None, "error": None}
     out_tmpl = os.path.join(DOWNLOAD_DIR, f"{job_id}.%(ext)s")
@@ -61,7 +72,7 @@ def run_download(job_id, url, start, end, quality):
             "preferedformat": "mp4"
         }
     ],
-    "cookiefile": "/etc/secrets/youtube_cookies.txt",
+    "cookiefile": cookie_file,
     "extractor_args": {
     "youtubepot-bgutilhttp": {
         "base_url": "http://127.0.0.1:4416"
@@ -101,7 +112,7 @@ def preview_info():
             "quiet": False,
             "verbose": True,
             "skip_download": True,
-            "cookiefile": "/etc/secrets/youtube_cookies.txt",
+            "cookiefile": cookie_file,
             "extractor_args": {
                 "youtubepot-bgutilhttp": {
                     "base_url": "http://127.0.0.1:4416"
