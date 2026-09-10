@@ -40,34 +40,38 @@ def run_download(job_id, url, start, end, quality):
             jobs[job_id]["progress"] = 100
 
     ydl_opts = {
-        "format": QUALITY_MAP.get(
-            quality,
-            QUALITY_MAP["best"]
-        ),
+    "format": QUALITY_MAP.get(
+        quality,
+        QUALITY_MAP["best"]
+    ),
 
-        "merge_output_format": "mp4",
+    "merge_output_format": "mp4",
+    "outtmpl": out_tmpl,
 
-        "outtmpl": out_tmpl,
+    "download_ranges": yt_dlp.utils.download_range_func(
+        None,
+        [(to_seconds(start), to_seconds(end))]
+    ),
 
-        "download_ranges": yt_dlp.utils.download_range_func(
-            None,
-            [(to_seconds(start), to_seconds(end))]
-        ),
+    "force_keyframes_at_cuts": True,
 
-        "force_keyframes_at_cuts": True,
+    "postprocessors": [
+        {
+            "key": "FFmpegVideoConvertor",
+            "preferedformat": "mp4"
+        }
+    ],
 
-        "postprocessors": [
-            {
-                "key": "FFmpegVideoConvertor",
-                "preferedformat": "mp4"
-            }
-        ],
+    "extractor_args": {
+        "youtubepot-bgutilhttp": {
+            "base_url": "http://127.0.0.1:4416"
+        }
+    },
 
-        "progress_hooks": [hook],
-
-        "quiet": True,
-        "noprogress": True,
-    }
+    "progress_hooks": [hook],
+    "quiet": True,
+    "noprogress": True,
+}
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
