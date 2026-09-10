@@ -39,7 +39,7 @@ def get_cookie_file():
     shutil.copyfile(source, destination)
 
     return destination
-cookie_file = get_cookie_file()
+
 def run_download(job_id, url, start, end, quality):
     jobs[job_id] = {"status": "downloading", "progress": 0, "file": None, "error": None}
     out_tmpl = os.path.join(DOWNLOAD_DIR, f"{job_id}.%(ext)s")
@@ -53,7 +53,7 @@ def run_download(job_id, url, start, end, quality):
                 pass
         elif d["status"] == "finished":
             jobs[job_id]["progress"] = 100
-
+    cookie_file = get_cookie_file()
     ydl_opts = {
     "format": QUALITY_MAP.get(
         quality,
@@ -110,7 +110,7 @@ def preview_info():
 
     if not url:
         return jsonify({"error": "URL required"}), 400
-
+    cookie_file = get_cookie_file()
     try:
         preview_opts = {
             "quiet": False,
