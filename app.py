@@ -96,7 +96,7 @@ def run_download(job_id, url, start, end, quality):
     "retries": 3,
     "fragment_retries": 3,
 }
-}
+
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
