@@ -63,8 +63,8 @@ def run_download(job_id, url, start, end, quality):
     ],
 
     "extractor_args": {
-        "youtubepot-bgutilhttp": {
-            "base_url": "http://127.0.0.1:4416"
+        "youtubepot-bgutilscript": {
+            "server_home": "/root/bgutil-ytdlp-pot-provider/server"
         }
     },
 
@@ -72,7 +72,6 @@ def run_download(job_id, url, start, end, quality):
     "quiet": True,
     "noprogress": True,
 }
-
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
