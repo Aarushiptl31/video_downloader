@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install FFmpeg and required tools
 RUN apt-get update && \
-    apt-get install -y ffmpeg curl ca-certificates && \
+    apt-get install -y ffmpeg curl unzip ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Deno
