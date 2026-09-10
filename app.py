@@ -77,6 +77,8 @@ def run_download(job_id, url, start, end, quality):
         }
     ],
     "cookiefile": cookie_file,
+    "concurrent_fragment_downloads": 8,
+
     "extractor_args": {
     "youtubepot-bgutilhttp": {
         "base_url": "http://127.0.0.1:4416"
@@ -84,8 +86,16 @@ def run_download(job_id, url, start, end, quality):
 },
 
     "quiet": False,
-    "verbose": True,
     "noprogress": True,
+    "js_runtimes": {
+        "deno": {}
+    },
+
+    "socket_timeout": 30,
+
+    "retries": 3,
+    "fragment_retries": 3,
+}
 }
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -113,15 +123,23 @@ def preview_info():
     cookie_file = get_cookie_file()
     try:
         preview_opts = {
-            "quiet": False,
-            "verbose": True,
+            "quiet": True,
+            "no_warnings": True,
             "skip_download": True,
+        
             "cookiefile": cookie_file,
+        
             "extractor_args": {
                 "youtubepot-bgutilhttp": {
                     "base_url": "http://127.0.0.1:4416"
                 }
-            }
+            },
+
+            "js_runtimes": {
+                "deno": {}
+            },
+        
+            "socket_timeout": 15,
         }
 
         with yt_dlp.YoutubeDL(preview_opts) as ydl:
