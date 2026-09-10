@@ -68,8 +68,8 @@ def run_download(job_id, url, start, end, quality):
         }
     },
 
-    "progress_hooks": [hook],
-    "quiet": True,
+    "quiet": False,
+    "verbose": True,
     "noprogress": True,
 }
     try:
@@ -88,21 +88,39 @@ def run_download(job_id, url, start, end, quality):
 def index():
     return render_template("index.html")
 
+
 @app.route("/api/preview_info", methods=["POST"])
 def preview_info():
     url = request.json.get("url", "").strip()
+
     if not url:
         return jsonify({"error": "URL required"}), 400
+
     try:
-        with yt_dlp.YoutubeDL({"quiet": True, "skip_download": True}) as ydl:
+        preview_opts = {
+            "quiet": False,
+            "verbose": True,
+            "skip_download": True,
+
+            "extractor_args": {
+                "youtubepot-bgutilscript": {
+                    "server_home": "/root/bgutil-ytdlp-pot-provider/server"
+                }
+            }
+        }
+
+        with yt_dlp.YoutubeDL(preview_opts) as ydl:
             info = ydl.extract_info(url, download=False)
+
         return jsonify({
             "title": info.get("title"),
             "thumbnail": info.get("thumbnail"),
             "duration": info.get("duration"),
         })
+
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
 
 @app.route("/api/download", methods=["POST"])
 def start_download():
