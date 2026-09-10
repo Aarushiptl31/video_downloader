@@ -68,14 +68,6 @@ def run_download(job_id, url, start, end, quality):
         [(to_seconds(start), to_seconds(end))]
     ),
 
-    "force_keyframes_at_cuts": True,
-
-    "postprocessors": [
-        {
-            "key": "FFmpegVideoConvertor",
-            "preferedformat": "mp4"
-        }
-    ],
     "cookiefile": cookie_file,
     "concurrent_fragment_downloads": 8,
 
