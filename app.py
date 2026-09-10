@@ -63,13 +63,6 @@ def run_download(job_id, url, start, end, quality):
             }
         ],
 
-        # YouTube extraction settings
-        "extractor_args": {
-            "youtube": {
-                "player_client": ["android_vr", "web_safari"]
-            }
-        },
-
         "progress_hooks": [hook],
 
         "quiet": True,

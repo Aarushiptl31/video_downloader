@@ -2,9 +2,9 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install FFmpeg, curl and certificates
+# Install FFmpeg and required tools
 RUN apt-get update && \
-    apt-get install -y ffmpeg curl unzip ca-certificates && \
+    apt-get install -y ffmpeg curl ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Deno
@@ -15,8 +15,7 @@ ENV PATH=$DENO_INSTALL/bin:$PATH
 
 # Install Python dependencies
 COPY requirements.txt .
-
-RUN pip install --no-cache-dir -U "yt-dlp[default]" gunicorn Flask
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application
 COPY . .
