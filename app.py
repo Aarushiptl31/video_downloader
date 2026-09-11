@@ -284,7 +284,7 @@ def run_download(job_id, url, start, end, quality):
 
             "quiet": False,
             "noprogress": True,
-
+            "verbose": True,
             "js_runtimes": {
                 "deno": {}
             },
