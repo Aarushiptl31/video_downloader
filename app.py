@@ -277,6 +277,9 @@ def run_download(job_id, url, start, end, quality):
             "concurrent_fragment_downloads": 8,
 
             "extractor_args": {
+                "youtube": {
+                "player_client": ["android_vr"]
+                },
                 "youtubepot-bgutilhttp": {
                     "base_url": "http://127.0.0.1:4416"
                 }
