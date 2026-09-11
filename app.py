@@ -55,24 +55,53 @@ YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY")
 
 
 def extract_video_id(url):
-    """
-    Extract a YouTube video ID from common YouTube URL formats.
-    """
+   def extract_video_id(url):
+    from urllib.parse import urlparse, parse_qs
 
-    patterns = [
-        r"(?:youtube\.com/watch\?v=)([A-Za-z0-9_-]{11})",
-        r"(?:youtu\.be/)([A-Za-z0-9_-]{11})",
-        r"(?:youtube\.com/shorts/)([A-Za-z0-9_-]{11})",
-        r"(?:youtube\.com/embed/)([A-Za-z0-9_-]{11})",
-    ]
+    try:
+        parsed = urlparse(url.strip())
 
-    for pattern in patterns:
-        match = re.search(pattern, url)
+        # youtube.com/watch?v=VIDEO_ID
+        if parsed.hostname in (
+            "youtube.com",
+            "www.youtube.com",
+            "m.youtube.com",
+        ):
+            if parsed.path == "/watch":
+                video_id = parse_qs(parsed.query).get("v", [None])[0]
 
-        if match:
-            return match.group(1)
+                if video_id:
+                    return video_id[:11]
+
+            # youtube.com/shorts/VIDEO_ID
+            if parsed.path.startswith("/shorts/"):
+                video_id = parsed.path.split("/shorts/")[1].split("/")[0]
+
+                if video_id:
+                    return video_id[:11]
+
+            # youtube.com/embed/VIDEO_ID
+            if parsed.path.startswith("/embed/"):
+                video_id = parsed.path.split("/embed/")[1].split("/")[0]
+
+                if video_id:
+                    return video_id[:11]
+
+        # youtu.be/VIDEO_ID
+        if parsed.hostname in (
+            "youtu.be",
+            "www.youtu.be",
+        ):
+            video_id = parsed.path.strip("/").split("/")[0]
+
+            if video_id:
+                return video_id[:11]
+
+    except Exception:
+        pass
 
     return None
+    
 
 
 def parse_iso_duration(duration):
