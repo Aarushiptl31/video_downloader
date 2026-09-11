@@ -55,40 +55,65 @@ YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY")
 
 
 def extract_video_id(url):
-   def extract_video_id(url):
+    """
+    Extract a YouTube video ID from common YouTube URL formats.
+    Supports:
+    - youtube.com/watch?v=...
+    - youtube.com/live/...
+    - youtube.com/shorts/...
+    - youtube.com/embed/...
+    - youtu.be/...
+    """
+
     from urllib.parse import urlparse, parse_qs
 
     try:
         parsed = urlparse(url.strip())
 
-        # youtube.com/watch?v=VIDEO_ID
-        if parsed.hostname in (
+        hostname = (parsed.hostname or "").lower()
+
+        # youtube.com URLs
+        if hostname in (
             "youtube.com",
             "www.youtube.com",
             "m.youtube.com",
         ):
+
+            # Standard:
+            # https://www.youtube.com/watch?v=VIDEO_ID
             if parsed.path == "/watch":
                 video_id = parse_qs(parsed.query).get("v", [None])[0]
 
                 if video_id:
                     return video_id[:11]
 
-            # youtube.com/shorts/VIDEO_ID
+            # Live:
+            # https://www.youtube.com/live/VIDEO_ID
+            if parsed.path.startswith("/live/"):
+                video_id = parsed.path.split("/live/")[1].split("/")[0]
+
+                if video_id:
+                    return video_id[:11]
+
+            # Shorts:
+            # https://www.youtube.com/shorts/VIDEO_ID
             if parsed.path.startswith("/shorts/"):
                 video_id = parsed.path.split("/shorts/")[1].split("/")[0]
 
                 if video_id:
                     return video_id[:11]
 
-            # youtube.com/embed/VIDEO_ID
+            # Embed:
+            # https://www.youtube.com/embed/VIDEO_ID
             if parsed.path.startswith("/embed/"):
                 video_id = parsed.path.split("/embed/")[1].split("/")[0]
 
                 if video_id:
                     return video_id[:11]
 
-        # youtu.be/VIDEO_ID
-        if parsed.hostname in (
+        # youtu.be:
+        # https://youtu.be/VIDEO_ID
+        if hostname in (
             "youtu.be",
             "www.youtu.be",
         ):
@@ -101,8 +126,6 @@ def extract_video_id(url):
         pass
 
     return None
-    
-
 
 def parse_iso_duration(duration):
     """
@@ -196,25 +219,6 @@ def get_youtube_video_info(video_id):
     }
 
 
-# ---------------------------------------------------------
-# COOKIE FILE
-# ---------------------------------------------------------
-
-def get_cookie_file():
-    source = "/etc/secrets/youtube_cookies.txt"
-    destination = "/tmp/youtube_cookies.txt"
-
-    if not os.path.isfile(source):
-        raise RuntimeError(
-            "YouTube cookie file not found at "
-            "/etc/secrets/youtube_cookies.txt. "
-            "Check Render Dashboard → Environment → Secret Files."
-        )
-
-    shutil.copyfile(source, destination)
-
-    return destination
-
 
 # ---------------------------------------------------------
 # DOWNLOAD
@@ -254,37 +258,21 @@ def run_download(job_id, url, start, end, quality):
             jobs[job_id]["progress"] = 100
 
     try:
-
-        # Cookies are used ONLY for downloading.
-        # Preview/search does not depend on them.
-        cookie_file = get_cookie_file()
-
         ydl_opts = {
-
             "format": QUALITY_MAP.get(
                 quality,
                 QUALITY_MAP["best"]
             ),
 
             "merge_output_format": "mp4",
-
             "outtmpl": out_tmpl,
 
-            # Download only requested section
             "download_ranges": yt_dlp.utils.download_range_func(
                 None,
-                [
-                    (
-                        to_seconds(start),
-                        to_seconds(end)
-                    )
-                ]
+                [(to_seconds(start), to_seconds(end))]
             ),
 
-            # Faster keyframe-based cutting
             "force_keyframes_at_cuts": False,
-
-            "cookiefile": cookie_file,
 
             "concurrent_fragment_downloads": 8,
 
@@ -295,7 +283,6 @@ def run_download(job_id, url, start, end, quality):
             },
 
             "quiet": False,
-
             "noprogress": True,
 
             "js_runtimes": {
@@ -303,9 +290,7 @@ def run_download(job_id, url, start, end, quality):
             },
 
             "socket_timeout": 30,
-
             "retries": 3,
-
             "fragment_retries": 3,
 
             "progress_hooks": [hook],
